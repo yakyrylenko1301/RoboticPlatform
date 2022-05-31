@@ -15,11 +15,12 @@ public:
     videoCapture() = default;
     videoCapture(const videoCapture&) = delete;
     videoCapture& operator=(const videoCapture&) = delete;
-    videoCapture(int index, cv::VideoCaptureAPIs apiPreference);   
+    videoCapture(int index, cv::VideoCaptureAPIs apiPreference, int width, int height);
     int getFrameSize(void);
     unsigned char* getPtrData(void);
     cv::Mat getFrame(void);
     bool isOpen(void);
+    bool isEmpty(void);
 };
 
 #endif // VIDEO_CAPTURE_H

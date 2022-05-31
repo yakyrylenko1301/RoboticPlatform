@@ -1,8 +1,10 @@
 #include "videoCapture.h"
 
-videoCapture::videoCapture(int index, cv::VideoCaptureAPIs apiPreference)
+videoCapture::videoCapture(int index, cv::VideoCaptureAPIs apiPreference, int width, int height)
 {
-    this->cature.open(index, apiPreference);    
+    this->cature.open(index, apiPreference); 
+    this->cature.set(cv::CAP_PROP_FRAME_WIDTH, width);
+    this->cature.set(cv::CAP_PROP_FRAME_HEIGHT, height);
 }
 
 int videoCapture::getFrameSize(void)
@@ -24,4 +26,9 @@ cv::Mat videoCapture::getFrame(void)
 bool videoCapture::isOpen(void)
 {
     return this->cature.isOpened();
+}
+
+bool videoCapture::isEmpty(void)
+{
+    return this->image.empty();
 }

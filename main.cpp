@@ -41,6 +41,22 @@ typedef struct TAG_MSG_PACK
 	char data[];
 }MSG_PACK;
 
+const stereoCamData camLeft =
+{
+    .index = 0,
+    .apiPreference = CAP_V4L2,
+    .frameWidth = 320,
+    .frameHeight = 240,
+};
+
+const stereoCamData camRight =
+{
+    .index = 2,
+    .apiPreference = CAP_V4L2,
+    .frameWidth = 320,
+    .frameHeight = 240,
+};
+
 
 void *RcvData(void *fd);
 
@@ -138,6 +154,17 @@ int main()
         printf("4.ERROR: connection arrived, ret val =  %d\r\n", connfd); 
         exit(1);  
     }
+
+    stereoCam stereoCamera(camLeft, camRight);
+    if (!stereoCamera.isOpened())
+    {
+        close(connfd);    
+    }
+    else
+    {
+        cout << "Stereo camera opened!!" << endl;
+    }
+
     //Create a thread to receive client message
     pthread_t thread;
     if(pthread_create(&thread, NULL, RcvData, &connfd) != 0)
@@ -150,57 +177,28 @@ int main()
         printf("5.SUCCESS: Thread Created\r\n");      
     }
 
-    Mat imageLeft;
-    Mat imageRight;
-    VideoCapture captureLeft;
-    VideoCapture captureRight;
-    captureLeft.open(0, CAP_V4L2);
-    captureRight.open(2, CAP_V4L2);
-    
-    captureLeft.set(cv::CAP_PROP_FRAME_WIDTH, 320);
-    captureLeft.set(cv::CAP_PROP_FRAME_HEIGHT, 240);
 
-    captureRight.set(cv::CAP_PROP_FRAME_WIDTH, 320);
-    captureRight.set(cv::CAP_PROP_FRAME_HEIGHT, 240);
-
-    if(captureLeft.isOpened() && captureRight.isOpened())
+    cout << "captureLeft is opened" << endl;
+    for(;;)
     {
-        cout << "captureLeft is opened" << endl;
-        for(;;)
+        bool res = stereoCamera.saveStereoFrame();
+        if (res != true)
         {
-            captureLeft >> imageLeft;
-            captureRight >> imageRight;
-
-            if(imageLeft.empty() || imageRight.empty())
-            {
-                cout << "Image is empty" << endl;
-                break;
-            }
-            cvtColor(imageLeft, imageLeft, cv::COLOR_BGR2RGB);
-            cvtColor(imageRight, imageRight, cv::COLOR_BGR2RGB);
-
-            cv::Size sz_left = imageLeft.size();
-            cv::Size sz_right = imageRight.size();
-
-            int imageWidthLeft = sz_left.width;
-            int imageHeightLeft = sz_left.height;
-
-            int imageWidthRight = sz_right.width;
-            int imageHeightRight = sz_right.height;
-            // cout << "imageWidth:\t" << imageWidth << endl;
-            // cout << "imageHeight:\t" << imageHeight << endl;
-            // cout << "Img total :\t" << image.total() << endl;
-            // cout << "Img element Size :\t" << image.elemSize() << endl;
-            // cout << "Img Size :\t" << image.total() * image.elemSize() << endl;
-            int image_size_left = imageLeft.total() * imageLeft.elemSize();
-            int image_size_right = imageLeft.total() * imageLeft.elemSize();
-            unsigned char* dataMatLeft = imageLeft.data;
-            unsigned char* dataMatRight = imageRight.data;
-
-            SendImage(connfd, dataMatLeft, image_size_left, 1);//Send original RGB image,type 1
-            SendImage(connfd, dataMatRight, image_size_right, 2);//Send original RGB image,type 1
+            cout << "Image is empty" << endl;
+            break;    
         }
+
+        unsigned char* dataMatLeft = stereoCamera.getLeftFrame().data;
+        unsigned char* dataMatRight = stereoCamera.getRightFrame().data;
+
+        SendImage(connfd, dataMatLeft, stereoCamera.getLeftSize(), 1);//Send original RGB image,type 1
+        SendImage(connfd, dataMatRight, stereoCamera.getRightSize(), 2);//Send original RGB image,type 1
     }
+
+    cout << "Close conection with " << endl;
+    close(connfd);
+    pthread_cancel(thread);
+
 
 
     while(1) 
