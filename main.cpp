@@ -21,6 +21,8 @@
 #include "opencv2/videoio.hpp"
 
 #include "stereoCam.h"
+#include "tcp_ip_server.h"
+#include <bcm2835.h>
 
 using namespace cv;
 using namespace std;
@@ -33,13 +35,6 @@ void start_information(void)
     std::cout << "Start TCP/IP server" << std::endl;
     cout << "Built with OpenCV " << CV_VERSION << endl;
 }
-
-typedef struct TAG_MSG_PACK
-{
-	int nImageType;
-	int nLen;
-	char data[];
-}MSG_PACK;
 
 const stereoCamData camLeft =
 {
@@ -57,128 +52,44 @@ const stereoCamData camRight =
     .frameHeight = 240,
 };
 
-
-void *RcvData(void *fd);
-
-int  SendImage(int sock, unsigned char *buf, int nLen, int imgeType)
-{
-	int nRes = 0;
-	MSG_PACK *msgPack;
-	char *pSZMsgPack = (char*)malloc(sizeof(MSG_PACK)+nLen);
-	msgPack = (MSG_PACK *)pSZMsgPack;
-	msgPack->nImageType = htonl(imgeType);
-	msgPack->nLen = htonl(nLen);
-	memcpy(pSZMsgPack+sizeof(MSG_PACK), buf, nLen);
-	nRes = write(sock, pSZMsgPack, sizeof(MSG_PACK)+nLen);
-	printf("Write imageBuf: %d\n",nRes);
-	free(pSZMsgPack);
-	if(nRes == nLen+sizeof(MSG_PACK))
-	{
-        printf("Ok -send\n");
-		return nLen+sizeof(MSG_PACK);
-	}
-	return 0;
-}
-
 int main()
 {
     start_information();
-    int listenfd = 0, connfd = 0;
-    struct sockaddr_in serv_addr;
-    struct ifreq ifr;
-    struct hostent *host_entry;
-    char sZhostName[255];
-    gethostname(sZhostName,255);
-    host_entry = gethostbyname(sZhostName);
+    tcp_ip_server server(5000);
 
-    char sendBuff[1025];
-    time_t ticks;
-
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    ifr.ifr_addr.sa_family = AF_INET;
-    if (listenfd != -1)
+    if (server.isOpened())
     {
-        printf("1.SUCCESS: Create a new socket, id =  %d\r\n", listenfd);
+        cout << "INFO:Sever created" << endl;
     }
     else
     {
-        printf("1.ERROE: Create a new socket, id =  %d\r\n", listenfd);
-        exit(1);
+        cout << "ERROR:Sever did not creat" << endl;
     }
-    memset(&serv_addr, '0', sizeof(serv_addr));
-    memset(sendBuff, '0', sizeof(sendBuff));
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serv_addr.sin_port = htons(5029);
-
-    int ret_bind = bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-    if (ret_bind == 0)
+    if (server.waitConnectionClient())
     {
-        printf("2.SUCCESS: Bind a name to a socket, ret val =  %d\r\n", ret_bind);
+        cout << "INFO:Client connected to server" << endl;    
     }
     else
     {
-        printf("2.ERROR: Bind a name to a socket, ret val =  %d\r\n", ret_bind);   
-        exit(1); 
-    }
-
-    int ret_listen = listen(listenfd, 10);
-    if(ret_listen == 0)
-    {
-        printf("3.SUCCESS: listen for connections on a socket, ret val =  %d\r\n", ret_listen);    
-    }
-    else
-    {
-        printf("3.ERROR: listen for connections on a socket, ret val =  %d\r\n", ret_listen);
-        exit(1);
-    }
-    char array[] = "eth0";
-    strncpy(ifr.ifr_name , array , IFNAMSIZ - 1);
-    ioctl(listenfd, SIOCGIFADDR, &ifr);
-    printf("IP Address is %s - %s\n", array , inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr) );
-    printf("Listening on port %d\n",  ntohs(serv_addr.sin_port));
-
-    struct sockaddr_in client;
-    int clientLen = 0;
-    clientLen = sizeof(struct sockaddr_in);
-
-    printf("Waiting for incoming connections...\r\n");
-    connfd = accept(listenfd, (struct sockaddr*)&client, (socklen_t*)&clientLen);
-    if(connfd != -1)
-    {
-        printf("4.SUCCESS: connection arrived, ret val =  %d\r\n", connfd);  
-    }
-    else
-    {
-        printf("4.ERROR: connection arrived, ret val =  %d\r\n", connfd); 
-        exit(1);  
+        cout << "ERROT:Client did not connect to server" << endl;    
     }
 
     stereoCam stereoCamera(camLeft, camRight);
     if (!stereoCamera.isOpened())
     {
-        close(connfd);    
+        server.close_server(); 
     }
     else
     {
         cout << "Stereo camera opened!!" << endl;
     }
 
-    //Create a thread to receive client message
-    pthread_t thread;
-    if(pthread_create(&thread, NULL, RcvData, &connfd) != 0)
-	{	
-        printf("5.Error: Can not create the thread\r\n");
-        exit(1); 
-	}
-    else
+    if (!server.start_rcv_data())
     {
-        printf("5.SUCCESS: Thread Created\r\n");      
+        cout << "ERROT:Can not start rcv data" << endl;         
     }
 
-
-    cout << "captureLeft is opened" << endl;
     for(;;)
     {
         bool res = stereoCamera.saveStereoFrame();
@@ -191,51 +102,11 @@ int main()
         unsigned char* dataMatLeft = stereoCamera.getLeftFrame().data;
         unsigned char* dataMatRight = stereoCamera.getRightFrame().data;
 
-        SendImage(connfd, dataMatLeft, stereoCamera.getLeftSize(), 1);//Send original RGB image,type 1
-        SendImage(connfd, dataMatRight, stereoCamera.getRightSize(), 2);//Send original RGB image,type 1
+        server.sendImage(dataMatLeft, stereoCamera.getLeftSize(), 1);
+        server.sendImage(dataMatRight, stereoCamera.getRightSize(), 2);
     }
 
-    cout << "Close conection with " << endl;
-    close(connfd);
-    pthread_cancel(thread);
-
-
-
-    while(1) 
-    {
-        sleep(1);
-    }
 	return 0;
 }
 
-void *RcvData(void *fd)
-{
-    int byte, nType, nLen;
-    unsigned char char_recv[100] = {0};
-    int sock = *((int*)fd);
-    while(1)
-    {
-		recv(sock, char_recv, sizeof(int),0);
-		nType = (int)char_recv[0];
-		printf("Recv data 1 : %d \n",nType);
-
-        recv(sock, char_recv, sizeof(int), 0);
-		printf("Recv data 2 : %d \n",char_recv[0]);
-        nLen = (int)char_recv[0];
-
-        if(nType == 5)
-        {
-            printf("Client reply : \t");
-            for(int j = 0; j < nLen; j++)
-            {
-                recv(sock, char_recv, sizeof(int), 0);
-                printf("Recv data %d : %d \n", j, char_recv[0]);
-
-
-            }
-            printf("\r\n");
-            memset(char_recv, 0, 100);
-        }
-    }   
-}
 

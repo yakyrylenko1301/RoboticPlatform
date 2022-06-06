@@ -23,7 +23,10 @@ message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
 # Declare the executable target built from your sources
-add_executable(tcp_ip_server_project main.cpp videoCapture.cpp stereoCam.cpp)
+add_executable(tcp_ip_server_project main.cpp
+     videoCapture.cpp 
+     stereoCam.cpp
+     tcp_ip_server.cpp)
 
 # Link your application with OpenCV libraries
 target_link_libraries(tcp_ip_server_project PRIVATE ${OpenCV_LIBS})
