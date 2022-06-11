@@ -23,6 +23,7 @@
 #include "stereoCam.h"
 #include "tcp_ip_server.h"
 #include <bcm2835.h>
+#include "motor.h"
 
 using namespace cv;
 using namespace std;
@@ -55,7 +56,7 @@ const stereoCamData camRight =
 int main()
 {
     start_information();
-    tcp_ip_server server(5000);
+/*    tcp_ip_server server(5000);
 
     if (server.isOpened())
     {
@@ -104,8 +105,19 @@ int main()
 
         server.sendImage(dataMatLeft, stereoCamera.getLeftSize(), 1);
         server.sendImage(dataMatRight, stereoCamera.getRightSize(), 2);
-    }
+    }*/
 
+    //front motor right En1 = Gpio 22, In1 =  Gpio 27, In2 = Gpio 17
+
+    MotorCtrl motor1(2,0,3);
+    motor1.forward();
+    motor1.speedUp(10);
+    sleep(5);
+    motor1.stop();
+    while(1)
+    {
+
+    }
 	return 0;
 }
 

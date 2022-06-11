@@ -11,7 +11,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(OpenCV REQUIRED)
 find_package(Threads REQUIRED)
 
-
 # If the package has been found, several variables will
 # be set, you can find the full list with descriptions
 # in the OpenCVConfig.cmake file.
@@ -26,8 +25,18 @@ message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 add_executable(tcp_ip_server_project main.cpp
      videoCapture.cpp 
      stereoCam.cpp
-     tcp_ip_server.cpp)
+     tcp_ip_server.cpp
+     motor.cpp
+     electricDrive.cpp
+     )
+
 
 # Link your application with OpenCV libraries
+# Include headers
+
+
+# Link against libraries
+find_library(WIRINGPI_LIBRARIES NAMES wiringPi)
+target_link_libraries(tcp_ip_server_project PRIVATE ${WIRINGPI_LIBRARIES})
 target_link_libraries(tcp_ip_server_project PRIVATE ${OpenCV_LIBS})
 target_link_libraries(tcp_ip_server_project PRIVATE Threads::Threads)
