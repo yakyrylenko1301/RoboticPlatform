@@ -101,6 +101,11 @@ public:
     void moveLeft(void);
     void moveRight(void);
     void moveStop(void);
+
+    int getFrontRightRPM(void);
+    int getFrontLeftRPM(void);
+    int getBackRightRPM(void);
+    int getBackLeftRPM(void);
 };
 
 #endif

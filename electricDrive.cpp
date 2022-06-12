@@ -70,3 +70,23 @@ void ElectricDrive::moveStop(void)
     this->motor_front_left->stop();
     this->motor_front_right->stop();    
 }
+
+int  ElectricDrive::getFrontRightRPM(void)
+{
+    return ss_front_right->getRPM();    
+}
+
+int  ElectricDrive::getFrontLeftRPM(void)
+{
+    return ss_front_left->getRPM();
+}
+
+int  ElectricDrive::getBackRightRPM(void)
+{
+    return ss_back_right->getRPM();    
+}
+
+int  ElectricDrive::getBackLeftRPM(void)
+{
+    return ss_back_left->getRPM(); 
+}

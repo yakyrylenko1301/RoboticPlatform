@@ -7,6 +7,7 @@
 #include <chrono>
 #include <ctime>
 #include <unistd.h>
+#include <iostream>
 
 namespace private_speed_sensor_cfg
 {
@@ -87,7 +88,11 @@ void* speed_sensor_cfg::threaHandlerFrontRight(void* arg)
         {
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
-            private_speed_sensor_cfg::holesCounter[pos] = 0; 
+            private_speed_sensor_cfg::holesCounter[pos] = 0;
+            if (spd->getRPM() != 0)
+            {
+                std::cout << "PRM: " << spd->getRPM() << std::endl;
+            }
         }
 
         sleep(1);
@@ -106,7 +111,11 @@ void* speed_sensor_cfg::threaHandlerFrontLeft(void* arg)
         {
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
-            private_speed_sensor_cfg::holesCounter[pos] = 0; 
+            private_speed_sensor_cfg::holesCounter[pos] = 0;
+            if (spd->getRPM() != 0)
+            {
+                std::cout << "PRM: " << spd->getRPM() << std::endl;
+            }
         }
 
         sleep(1);
@@ -125,7 +134,11 @@ void* speed_sensor_cfg::threaHandlerBackRight(void* arg)
         {
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
-            private_speed_sensor_cfg::holesCounter[pos] = 0; 
+            private_speed_sensor_cfg::holesCounter[pos] = 0;
+            if (spd->getRPM() != 0)
+            {
+                std::cout << "PRM: " << spd->getRPM() << std::endl;
+            }
         }
 
         sleep(1);
@@ -144,7 +157,11 @@ void* speed_sensor_cfg::threaHandlerBackLeft(void* arg)
         {
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
-            private_speed_sensor_cfg::holesCounter[pos] = 0; 
+            private_speed_sensor_cfg::holesCounter[pos] = 0;
+            if (spd->getRPM() != 0)
+            {
+                std::cout << "PRM: " << spd->getRPM() << std::endl;
+            }
         }
 
         sleep(1);

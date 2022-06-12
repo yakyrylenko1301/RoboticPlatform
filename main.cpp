@@ -142,29 +142,29 @@ void* rcvData(void* fd)
 int main()
 {
     start_information();
-    tcp_ip_server server(5000);
+    // tcp_ip_server server(5000);
 
     ElectricDrive ed(5);
 
     setEd(&ed);
 
-    if (server.isOpened())
-    {
-        cout << "INFO:Sever created" << endl;
-    }
-    else
-    {
-        cout << "ERROR:Sever did not creat" << endl;
-    }
+    // if (server.isOpened())
+    // {
+    //     cout << "INFO:Sever created" << endl;
+    // }
+    // else
+    // {
+    //     cout << "ERROR:Sever did not creat" << endl;
+    // }
 
-    if (server.waitConnectionClient())
-    {
-        cout << "INFO:Client connected to server" << endl;    
-    }
-    else
-    {
-        cout << "ERROT:Client did not connect to server" << endl;    
-    }
+    // if (server.waitConnectionClient())
+    // {
+    //     cout << "INFO:Client connected to server" << endl;    
+    // }
+    // else
+    // {
+    //     cout << "ERROT:Client did not connect to server" << endl;    
+    // }
 
     // stereoCam stereoCamera(camLeft, camRight);
     // if (!stereoCamera.isOpened())
@@ -176,10 +176,10 @@ int main()
     //     cout << "Stereo camera opened!!" << endl;
     // }
 
-    if (!server.start_rcv_data(rcvData))
-    {
-        cout << "ERROT:Can not start rcv data" << endl;         
-    }
+    // if (!server.start_rcv_data(rcvData))
+    // {
+    //     cout << "ERROT:Can not start rcv data" << endl;         
+    // }
 
     // for(;;)
     // {
