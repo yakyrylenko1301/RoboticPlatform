@@ -93,12 +93,12 @@ bool tcp_ip_server::isOpened()
     return (err_code == server_cfg::server_err_code::SERVER_OK);
 }
 
-bool tcp_ip_server::start_rcv_data(void)
+bool tcp_ip_server::start_rcv_data(void* (rcvDataClbk)(void* fd))
 {
 
     bool res_return = true;
 
-    if(pthread_create(&thread, NULL, rcvData, &connfd) != 0)
+    if(pthread_create(&thread, NULL, rcvDataClbk, &connfd) != 0)
     {
         res_return = false;
     }

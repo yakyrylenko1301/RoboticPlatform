@@ -31,6 +31,13 @@
 
 using namespace cv;
 using namespace std;
+
+ElectricDrive* pEd = nullptr;
+
+void setEd(ElectricDrive* thisEd);
+
+ElectricDrive* getEd(void);
+
 /*
 Run the utility:
 v4l2-ctl --list-devices
@@ -57,10 +64,89 @@ const stereoCamData camRight =
     .frameHeight = 240,
 };
 
+namespace cmdToEdCtrl
+{
+   const int moveForward    = 34;
+   const int moveBack       = 35;
+   const int moveLeft       = 36;
+   const int moveRight      = 37;
+   const int moveStop       = 38;
+};
+
+void setEd(ElectricDrive* thisEd)
+{
+    pEd = thisEd;
+}
+
+ElectricDrive* getEd(void)
+{
+    return pEd;
+}
+void* rcvData(void* fd)
+{
+    int byte, nType, nLen;
+    unsigned char char_recv[100] = {0};
+    int sock = *((int*)fd);
+    ElectricDrive* ed = getEd();
+    while(1)
+    {
+        recv(sock, char_recv, sizeof(int),0);
+        nType = (int)char_recv[0];
+        printf("Recv data 1 : %d \n",nType);
+
+        // recv(sock, char_recv, sizeof(int), 0);
+        // printf("Recv data 2 : %d \n",char_recv[0]);
+        // nLen = (int)char_recv[0];
+
+        if(nType == 5)
+        {
+            printf("Client reply : \t");
+            for(int j = 0; j < nLen; j++)
+            {
+                recv(sock, char_recv, sizeof(int), 0);
+                printf("Recv data %d : %d \n", j, char_recv[0]);
+
+
+            }
+            printf("\r\n");
+            memset(char_recv, 0, 100);
+        }
+        else if (nType == cmdToEdCtrl::moveForward)
+        {
+            printf("move forward\n");
+            ed->moveForward();
+        }
+        else if (nType == cmdToEdCtrl::moveBack)
+        {
+            printf("move back\n");
+            ed->moveBack();
+        }
+        else if (nType == cmdToEdCtrl::moveLeft)
+        {
+            printf("move left\n");
+            ed->moveLeft();
+        }
+        else if(nType == cmdToEdCtrl::moveRight)
+        {
+            printf("move right\n");
+            ed->moveRight();
+        }
+        else if(nType == cmdToEdCtrl::moveStop)
+        {
+            printf("move right\n");
+            ed->moveStop();
+        }
+    }
+}
+
 int main()
 {
     start_information();
-/*    tcp_ip_server server(5000);
+    tcp_ip_server server(5000);
+
+    ElectricDrive ed(5);
+
+    setEd(&ed);
 
     if (server.isOpened())
     {
@@ -80,36 +166,36 @@ int main()
         cout << "ERROT:Client did not connect to server" << endl;    
     }
 
-    stereoCam stereoCamera(camLeft, camRight);
-    if (!stereoCamera.isOpened())
-    {
-        server.close_server(); 
-    }
-    else
-    {
-        cout << "Stereo camera opened!!" << endl;
-    }
+    // stereoCam stereoCamera(camLeft, camRight);
+    // if (!stereoCamera.isOpened())
+    // {
+    //     server.close_server(); 
+    // }
+    // else
+    // {
+    //     cout << "Stereo camera opened!!" << endl;
+    // }
 
-    if (!server.start_rcv_data())
+    if (!server.start_rcv_data(rcvData))
     {
         cout << "ERROT:Can not start rcv data" << endl;         
     }
 
-    for(;;)
-    {
-        bool res = stereoCamera.saveStereoFrame();
-        if (res != true)
-        {
-            cout << "Image is empty" << endl;
-            break;    
-        }
+    // for(;;)
+    // {
+    //     bool res = stereoCamera.saveStereoFrame();
+    //     if (res != true)
+    //     {
+    //         cout << "Image is empty" << endl;
+    //         break;    
+    //     }
 
-        unsigned char* dataMatLeft = stereoCamera.getLeftFrame().data;
-        unsigned char* dataMatRight = stereoCamera.getRightFrame().data;
+    //     unsigned char* dataMatLeft = stereoCamera.getLeftFrame().data;
+    //     unsigned char* dataMatRight = stereoCamera.getRightFrame().data;
 
-        server.sendImage(dataMatLeft, stereoCamera.getLeftSize(), 1);
-        server.sendImage(dataMatRight, stereoCamera.getRightSize(), 2);
-    }*/
+    //     server.sendImage(dataMatLeft, stereoCamera.getLeftSize(), 1);
+    //     server.sendImage(dataMatRight, stereoCamera.getRightSize(), 2);
+    // }
 
     //front motor right En1 = Gpio 22, In1 =  Gpio 27, In2 = Gpio 17
 
@@ -138,7 +224,7 @@ int main()
     //      << duration.count() << " microseconds" << endl;
 
 
-    ElectricDrive ed(5);
+    
 
     while (1)
     {

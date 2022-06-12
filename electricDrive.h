@@ -95,6 +95,12 @@ public:
     ElectricDrive& operator=(const ElectricDrive&) = delete;
     ElectricDrive(int x);
     ~ElectricDrive(void);
+
+    void moveForward(void);
+    void moveBack(void);
+    void moveLeft(void);
+    void moveRight(void);
+    void moveStop(void);
 };
 
 #endif

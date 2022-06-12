@@ -46,9 +46,10 @@ private:
     int clientLen = 0;
     pthread_t thread;
     static void* rcvData(void* fd);
+    void* (rcvDataClbk)(void* fd);
     
 public:
-    tcp_ip_server() = default;
+    tcp_ip_server() = delete;
     tcp_ip_server(const tcp_ip_server&) = delete;
     tcp_ip_server& operator=(const tcp_ip_server&) = delete;
     tcp_ip_server(int port);
@@ -59,7 +60,7 @@ public:
     bool waitConnectionClient(void);
     void open(void);
     void close_server(void);
-    bool start_rcv_data(void);
+    bool start_rcv_data(void* (rcvDataClbk)(void* fd));
     bool sendImage(unsigned char *buf, int nLen, int imgeType);
 };
 
