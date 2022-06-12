@@ -1,6 +1,7 @@
 #ifndef ELECTRIC_DRIVE_H
 #define ELECTRIC_DRIVE_H
 #include "motor.h"
+#include "speed_sensor.h"
 
 namespace ed_pin_bcm_cfg
 {
@@ -79,6 +80,15 @@ private:
     MotorCtrl* motor_front_left;
     MotorCtrl* motor_back_right;
     MotorCtrl* motor_back_left;
+    speedSensor* ss_front_right;
+    speedSensor* ss_front_left;
+    speedSensor* ss_back_right;
+    speedSensor* ss_back_left;
+
+    void speedSensorFrontRightISR(void);
+    void speedSensorFrontLeftISR(void);
+    void speedSensorBackRightISR(void);
+    void speedSensorBackLeftISR(void);
 public:
     ElectricDrive() = delete;
     ElectricDrive(const ElectricDrive&) = delete;

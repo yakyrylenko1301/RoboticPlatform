@@ -24,6 +24,10 @@
 #include "tcp_ip_server.h"
 #include <bcm2835.h>
 #include "motor.h"
+#include "speed_sensor.h"
+#include "electricDrive.h"
+
+#include <chrono>
 
 using namespace cv;
 using namespace std;
@@ -109,15 +113,39 @@ int main()
 
     //front motor right En1 = Gpio 22, In1 =  Gpio 27, In2 = Gpio 17
 
-    MotorCtrl motor1(2,0,3);
-    motor1.forward();
-    motor1.speedUp(10);
-    sleep(5);
-    motor1.stop();
-    while(1)
-    {
+    // MotorCtrl motor1(2,0,3);
+    // motor1.forward();
+    // motor1.speedUp(10);
+    // sleep(5);
+    // motor1.stop();
 
+    // std::chrono::time_point<std::chrono::system_clock> start, stop;
+    // // Get starting timepoint
+    // start = std::chrono::system_clock::now();
+
+    // // Call the function, here sort()
+    // sleep(5);
+ 
+    // // Get ending timepoint
+    // stop = std::chrono::system_clock::now();
+ 
+    // // Get duration. Substart timepoints to
+    // // get duration. To cast it to proper unit
+    // // use duration cast method
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+ 
+    // cout << "Time taken by function: "
+    //      << duration.count() << " microseconds" << endl;
+
+
+    ElectricDrive ed(5);
+
+    while (1)
+    {
+        /* code */
     }
+    
+
 	return 0;
 }
 
