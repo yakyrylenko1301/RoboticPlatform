@@ -47,6 +47,7 @@ private:
     pthread_t thread;
     static void* rcvData(void* fd);
     void* (rcvDataClbk)(void* fd);
+    bool readyToCommunication;
     
 public:
     tcp_ip_server() = delete;
@@ -62,6 +63,8 @@ public:
     void close_server(void);
     bool start_rcv_data(void* (rcvDataClbk)(void* fd));
     bool sendImage(unsigned char *buf, int nLen, int imgeType);
+    bool sendRPM(int rpmFL, int rpmFR, int rpmBL, int rpmBR);
+    bool isReadyToCommunication(void);
 };
 
 

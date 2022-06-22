@@ -89,13 +89,13 @@ void* speed_sensor_cfg::threaHandlerFrontRight(void* arg)
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
             private_speed_sensor_cfg::holesCounter[pos] = 0;
-            if (spd->getRPM() != 0)
-            {
-                std::cout << "PRM: " << spd->getRPM() << std::endl;
-            }
+            // if (spd->getRPM() != 0)
+            // {
+            //     std::cout << "PRM: " << spd->getRPM() << std::endl;
+            // }
         }
 
-        sleep(1);
+        usleep(100000);
         i++;
     } 
 }
@@ -112,13 +112,13 @@ void* speed_sensor_cfg::threaHandlerFrontLeft(void* arg)
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
             private_speed_sensor_cfg::holesCounter[pos] = 0;
-            if (spd->getRPM() != 0)
-            {
-                std::cout << "PRM: " << spd->getRPM() << std::endl;
-            }
+            // if (spd->getRPM() != 0)
+            // {
+            //     std::cout << "PRM: " << spd->getRPM() << std::endl;
+            // }
         }
 
-        sleep(1);
+        usleep(100000);
         i++;
     } 
 }
@@ -135,13 +135,13 @@ void* speed_sensor_cfg::threaHandlerBackRight(void* arg)
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
             private_speed_sensor_cfg::holesCounter[pos] = 0;
-            if (spd->getRPM() != 0)
-            {
-                std::cout << "PRM: " << spd->getRPM() << std::endl;
-            }
+            // if (spd->getRPM() != 0)
+            // {
+            //     std::cout << "PRM: " << spd->getRPM() << std::endl;
+            // }
         }
 
-        sleep(1);
+        usleep(100000);
         i++;
     } 
 }
@@ -158,13 +158,13 @@ void* speed_sensor_cfg::threaHandlerBackLeft(void* arg)
             i = 0;
             spd->calcRPM(private_speed_sensor_cfg::holesCounter[pos]);
             private_speed_sensor_cfg::holesCounter[pos] = 0;
-            if (spd->getRPM() != 0)
-            {
-                std::cout << "PRM: " << spd->getRPM() << std::endl;
-            }
+            // if (spd->getRPM() != 0)
+            // {
+            //     std::cout << "PRM: " << spd->getRPM() << std::endl;
+            // }
         }
 
-        sleep(1);
+        usleep(100000);
         i++;
     }   
 }
@@ -178,8 +178,8 @@ speedSensor::speedSensor(int pinSpeedSensor, void (*isr)(void), void *(*thread_f
     this->opened = true;
     this->counerEncoderWheelHoles = 0;
     this->rpm = 0;
-    this->calcInterval = 60 / 5;
-    this->usInterval = 5 * 1000000;
+    this->calcInterval = 60;
+    this->usInterval = 0.01 * 1000000;
     if (pthread_create(&this->thread, NULL, thread_func, this) != 0) 
     {
         this->opened = false;

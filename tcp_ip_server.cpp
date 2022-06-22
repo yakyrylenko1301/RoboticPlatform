@@ -9,8 +9,16 @@ typedef struct TAG_MSG_PACK
 {
 	int nImageType;
 	int nLen;
-	char data[];
+	unsigned char data[];
 }MSG_PACK;
+
+typedef struct TAG_MSG_SPEED_SENSOR
+{
+	int nSpeedSensorType;
+	int nLen;
+    char data[];
+}MSG_SPEED_SENSOR;
+
 
 tcp_ip_server::tcp_ip_server(int port) : port(port)
 {
@@ -19,6 +27,7 @@ tcp_ip_server::tcp_ip_server(int port) : port(port)
 
 void tcp_ip_server::open(void)
 {
+    readyToCommunication = false;
     err_code = server_cfg::server_err_code::SERVER_OK;
     if ((this->port > 999 && this->port < 9999) == false)
     {
@@ -58,7 +67,7 @@ void tcp_ip_server::open(void)
     }
 
     ifr.ifr_addr.sa_family = AF_INET;
-    char array[] = "eth0";
+    char array[] = "wlan0";
     strncpy(ifr.ifr_name , array , IFNAMSIZ - 1);
     ioctl(listenfd, SIOCGIFADDR, &ifr);
     this->ip_addr = std::string(inet_ntoa(( (struct sockaddr_in *)&ifr.ifr_addr )->sin_addr));
@@ -102,7 +111,7 @@ bool tcp_ip_server::start_rcv_data(void* (rcvDataClbk)(void* fd))
     {
         res_return = false;
     }
-
+    this->readyToCommunication = true;
     return res_return;
 }
 
@@ -157,7 +166,34 @@ bool tcp_ip_server::sendImage(unsigned char *buf, int nLen, int imgeType)
     }
 
     return 0;
+}
 
+bool tcp_ip_server::sendRPM(int rpmFL, int rpmFR, int rpmBL, int rpmBR)
+{
+    const int typeRpm = 5;
+    const int nLen = 4;
+    int nRes = 0;
+    MSG_SPEED_SENSOR *msgPack;
+    char *pSZMsgPack = (char*)malloc(sizeof(MSG_SPEED_SENSOR) + 4);
+    msgPack = (MSG_SPEED_SENSOR *)pSZMsgPack;
+    msgPack->nSpeedSensorType = htonl(typeRpm);
+    msgPack->nLen = htonl(nLen);
+    unsigned char buf[4] = {(char)rpmFL, (char)rpmFR, (char)rpmBL, (char)rpmBR};
+    memcpy(pSZMsgPack + sizeof(MSG_SPEED_SENSOR), buf, nLen);
+    nRes = write(this->connfd, pSZMsgPack, sizeof(MSG_SPEED_SENSOR)+nLen);
+    free(pSZMsgPack);
+
+    if(nRes == (nLen + sizeof(MSG_SPEED_SENSOR)))
+    {
+        return nLen + sizeof(MSG_SPEED_SENSOR);
+    }
+
+    return 0;  
+}
+
+bool tcp_ip_server::isReadyToCommunication(void)
+{
+    return this->readyToCommunication;
 }
 
 tcp_ip_server::~tcp_ip_server(void)

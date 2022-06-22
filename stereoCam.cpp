@@ -29,12 +29,14 @@ bool stereoCam::isEmpty(void)
 cv::Mat stereoCam::getLeftFrame(void)
 {
     cvtColor(this->frameLeft, this->frameLeft, cv::COLOR_BGR2RGB);
+    cv::rotate(this->frameLeft, this->frameLeft,cv::ROTATE_180);
     return this->frameLeft;
 }
 
 cv::Mat stereoCam::getRightFrame(void)
 {
     cvtColor(this->frameRight, this->frameRight, cv::COLOR_BGR2RGB);
+    cv::rotate(this->frameRight, this->frameRight,cv::ROTATE_180);
     return this->frameRight;
 }
 

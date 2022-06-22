@@ -20,6 +20,12 @@ namespace motorCtrl_cfg
         STOP,
         BACK,
     };
+
+    enum TypeMoving
+    {
+        NORMAL,
+        INVERT,
+    };
 };
 
 class MotorCtrl

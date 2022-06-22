@@ -28,15 +28,24 @@
 #include "electricDrive.h"
 
 #include <chrono>
+#include<signal.h>
+#include<unistd.h>
+#include <ctime>
 
 using namespace cv;
 using namespace std;
 
 ElectricDrive* pEd = nullptr;
+tcp_ip_server* p_server = nullptr;
+
 
 void setEd(ElectricDrive* thisEd);
 
 ElectricDrive* getEd(void);
+
+void setServer(tcp_ip_server* thisServer);
+
+tcp_ip_server* getServer(void);
 
 /*
 Run the utility:
@@ -82,6 +91,18 @@ ElectricDrive* getEd(void)
 {
     return pEd;
 }
+
+void setServer(tcp_ip_server* thisServer)
+{
+    p_server = thisServer;
+}
+
+tcp_ip_server* getServer(void)
+{
+    return p_server;;    
+}
+
+
 void* rcvData(void* fd)
 {
     int byte, nType, nLen;
@@ -138,93 +159,101 @@ void* rcvData(void* fd)
         }
     }
 }
+// clock_t prev_time = 0;;
+// void sig_handler(int signum){
+//     tcp_ip_server* p_server = getServer();
+//     if (p_server != nullptr)
+//     {
+//         if(p_server->isReadyToCommunication())
+//         {
+//             ElectricDrive* ed = getEd();
+//             //int rpmFL, int rpmFR, int rpmBL, int rpmBR
+//             p_server->sendRPM(ed->getFrontLeftRPM(), ed->getFrontRightRPM(),
+//                 ed->getBackLeftRPM(), ed->getBackRightRPM());
+//             // std::cout << "FRONT: "<< ed->getFrontLeftRPM() << "," << ed->getFrontRightRPM() << std::endl;
+//             // std::cout << "BACK:" << ed->getBackLeftRPM()  << "," <<  ed->getBackRightRPM()<< std::endl;
+
+//         }
+//     }
+//     alarm(1);
+// }
+
+
+pthread_t thread_X;
+
+void* sendRPMToServer(void* arg)
+{
+    std::cout << "start thread sendRPMToServer" << std::endl;
+    for(;;)
+    {
+        tcp_ip_server* p_server = getServer();
+        if (p_server != nullptr)
+        {
+            if(p_server->isReadyToCommunication())
+            {
+                ElectricDrive* ed = getEd();
+                //int rpmFL, int rpmFR, int rpmBL, int rpmBR
+                p_server->sendRPM(ed->getFrontLeftRPM(), ed->getFrontRightRPM(),
+                    21, ed->getBackRightRPM());
+            }
+        }
+        usleep(100000);       
+    }
+}
 
 int main()
 {
     start_information();
-    // tcp_ip_server server(5000);
+    tcp_ip_server server(5008);
 
     ElectricDrive ed(5);
 
     setEd(&ed);
+    setServer(&server);
 
-    // if (server.isOpened())
-    // {
-    //     cout << "INFO:Sever created" << endl;
-    // }
-    // else
-    // {
-    //     cout << "ERROR:Sever did not creat" << endl;
-    // }
+    if (server.isOpened())
+    {
+        cout << "INFO:Sever created" << endl;
+    }
+    else
+    {
+        cout << "ERROR:Sever did not creat" << endl;
+        return EXIT_FAILURE;
+    }
 
-    // if (server.waitConnectionClient())
-    // {
-    //     cout << "INFO:Client connected to server" << endl;    
-    // }
-    // else
-    // {
-    //     cout << "ERROT:Client did not connect to server" << endl;    
-    // }
+    if (server.waitConnectionClient())
+    {
+        cout << "INFO:Client connected to server" << endl;    
+    }
+    else
+    {
+        cout << "ERROT:Client did not connect to server" << endl;
+        return EXIT_FAILURE; 
+    }
 
-    // stereoCam stereoCamera(camLeft, camRight);
-    // if (!stereoCamera.isOpened())
-    // {
-    //     server.close_server(); 
-    // }
-    // else
-    // {
-    //     cout << "Stereo camera opened!!" << endl;
-    // }
+    stereoCam stereoCamera(camLeft, camRight);
+    if (!stereoCamera.isOpened())
+    {
+        server.close_server();
+        return EXIT_FAILURE;
+    }
+    else
+    {
+        cout << "Stereo camera opened!!" << endl;
+    }
 
-    // if (!server.start_rcv_data(rcvData))
-    // {
-    //     cout << "ERROT:Can not start rcv data" << endl;         
-    // }
+    if (!server.start_rcv_data(rcvData))
+    {
+        cout << "ERROT:Can not start rcv data" << endl;
+        return EXIT_FAILURE; 
+    }
 
-    // for(;;)
-    // {
-    //     bool res = stereoCamera.saveStereoFrame();
-    //     if (res != true)
-    //     {
-    //         cout << "Image is empty" << endl;
-    //         break;    
-    //     }
+    if(pthread_create(&thread_X, NULL, sendRPMToServer, NULL) != 0)
+    {
+        cout << "ERROT:Can not start rcv data" << endl;
+        return EXIT_FAILURE;    
+    }    
 
-    //     unsigned char* dataMatLeft = stereoCamera.getLeftFrame().data;
-    //     unsigned char* dataMatRight = stereoCamera.getRightFrame().data;
-
-    //     server.sendImage(dataMatLeft, stereoCamera.getLeftSize(), 1);
-    //     server.sendImage(dataMatRight, stereoCamera.getRightSize(), 2);
-    // }
-
-    //front motor right En1 = Gpio 22, In1 =  Gpio 27, In2 = Gpio 17
-
-    // MotorCtrl motor1(2,0,3);
-    // motor1.forward();
-    // motor1.speedUp(10);
-    // sleep(5);
-    // motor1.stop();
-
-    // std::chrono::time_point<std::chrono::system_clock> start, stop;
-    // // Get starting timepoint
-    // start = std::chrono::system_clock::now();
-
-    // // Call the function, here sort()
-    // sleep(5);
- 
-    // // Get ending timepoint
-    // stop = std::chrono::system_clock::now();
- 
-    // // Get duration. Substart timepoints to
-    // // get duration. To cast it to proper unit
-    // // use duration cast method
-    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
- 
-    // cout << "Time taken by function: "
-    //      << duration.count() << " microseconds" << endl;
-
-
-    
 
     while (1)
     {

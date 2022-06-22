@@ -14,7 +14,7 @@ MotorCtrl::MotorCtrl(int pinCtrlIn1, int pinCtrlIn2, int pinPWM):
     softPwmWrite(pinPWM, 0);
     digitalWrite(pinCtrlIn1, LOW);
     digitalWrite(pinCtrlIn2, LOW); 
-    this->intensity = 15;
+    this->intensity = 0;
 }
 
 void MotorCtrl::speedUp(int pwm_intensity)
@@ -30,7 +30,7 @@ void MotorCtrl::speedDown(int pwm_intensity)
 }
 
 void MotorCtrl::stop(void)
-{
+{ 
     this->intensity = 0;
     softPwmWrite(pinPWM, this->intensity);   
     digitalWrite(pinCtrlIn1, LOW);
@@ -39,7 +39,6 @@ void MotorCtrl::stop(void)
 
 void MotorCtrl::forward(void)
 {
-    this->intensity = 15;
     digitalWrite(pinCtrlIn1, LOW);
     digitalWrite(pinCtrlIn2, HIGH);
     softPwmWrite(pinPWM, this->intensity);
