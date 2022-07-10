@@ -32,6 +32,9 @@
 #include<unistd.h>
 #include <ctime>
 
+#include "fdrm_stbc_agm01.h"
+#include <wiringPiI2C.h>
+
 using namespace cv;
 using namespace std;
 
@@ -197,67 +200,104 @@ void* sendRPMToServer(void* arg)
                     21, ed->getBackRightRPM());
             }
         }
-        usleep(100000);       
+        usleep(10000);       
     }
 }
 
 int main()
 {
-    start_information();
-    tcp_ip_server server(5008);
 
-    ElectricDrive ed(5);
+    // int fd = wiringPiI2CSetup(FXOS8700CQ_SLAVE_ADDR);
 
-    setEd(&ed);
-    setServer(&server);
+    // close(fd);
 
-    if (server.isOpened())
+
+//     //start_information();
+// /*
+//     // tcp_ip_server server(5002);
+
+//     // ElectricDrive ed(5);
+
+//     // setEd(&ed);
+//     // setServer(&server);
+
+//     // if (server.isOpened())
+//     // {
+//     //     cout << "INFO:Sever created" << endl;
+//     // }
+//     // else
+//     // {
+//     //     cout << "ERROR:Sever did not creat" << endl;
+//     //     return EXIT_FAILURE;
+//     // }
+
+//     // if (server.waitConnectionClient())
+//     // {
+//     //     cout << "INFO:Client connected to server" << endl;    
+//     // }
+//     // else
+//     // {
+//     //     cout << "ERROT:Client did not connect to server" << endl;
+//     //     return EXIT_FAILURE; 
+//     // }
+
+//     // // stereoCam stereoCamera(camLeft, camRight);
+//     // // if (!stereoCamera.isOpened())
+//     // // {
+//     // //     server.close_server();
+//     // //     return EXIT_FAILURE;
+//     // // }
+//     // // else
+//     // // {
+//     // //     cout << "Stereo camera opened!!" << endl;
+//     // // }
+
+//     // if (!server.start_rcv_data(rcvData))
+//     // {
+//     //     cout << "ERROT:Can not start rcv data" << endl;
+//     //     return EXIT_FAILURE; 
+//     // }
+
+//     // if(pthread_create(&thread_X, NULL, sendRPMToServer, NULL) != 0)
+//     // {
+//     //     cout << "ERROT:Can not start rcv data" << endl;
+//     //     return EXIT_FAILURE;    
+//     // } 
+// */  
+    FXOS8700CQ sensorAccelMag(FXOS8700CQ_SLAVE_ADDR);
+    if (sensorAccelMag.isOpen() == false)
     {
-        cout << "INFO:Sever created" << endl;
+        std::cout << "ERROR: CAN NOT OPEN SENSOR" << std::endl;
+        return -1;
     }
-    else
-    {
-        cout << "ERROR:Sever did not creat" << endl;
-        return EXIT_FAILURE;
-    }
-
-    if (server.waitConnectionClient())
-    {
-        cout << "INFO:Client connected to server" << endl;    
-    }
-    else
-    {
-        cout << "ERROT:Client did not connect to server" << endl;
-        return EXIT_FAILURE; 
-    }
-
-    stereoCam stereoCamera(camLeft, camRight);
-    if (!stereoCamera.isOpened())
-    {
-        server.close_server();
-        return EXIT_FAILURE;
-    }
-    else
-    {
-        cout << "Stereo camera opened!!" << endl;
-    }
-
-    if (!server.start_rcv_data(rcvData))
-    {
-        cout << "ERROT:Can not start rcv data" << endl;
-        return EXIT_FAILURE; 
-    }
-
-    if(pthread_create(&thread_X, NULL, sendRPMToServer, NULL) != 0)
-    {
-        cout << "ERROT:Can not start rcv data" << endl;
-        return EXIT_FAILURE;    
-    }    
-
+    
+    sensorAccelMag.init();
 
     while (1)
     {
+        sensorAccelMag.readAccelData();
+        sensorAccelMag.readMagData();
         /* code */
+        // Print out the data
+        // Accelerometer
+        cout << "Accel ";
+        cout << "X: ";
+        cout << (int)sensorAccelMag.accelData.x;
+        cout << " Y: ";
+        cout << (int)sensorAccelMag.accelData.y;
+        cout << " Z: ";
+        cout << (int)sensorAccelMag.accelData.z << endl;
+
+        // Magnometer
+        cout << "Mag ";
+        cout << "X: ";
+        cout << (int)sensorAccelMag.magData.x;
+        cout << " Y: ";
+        cout << (int)sensorAccelMag.magData.y;
+        cout << " Z: ";
+        cout << (int)sensorAccelMag.magData.z << endl;
+
+        sleep(1);
     }
     
 

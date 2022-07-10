@@ -29,6 +29,7 @@ add_executable(tcp_ip_server_project main.cpp
      motor.cpp
      electricDrive.cpp
      speed_sensor.cpp
+     fdrm_stbc_agm01.cpp
      )
 
 
